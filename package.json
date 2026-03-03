@@ -1,0 +1,77 @@
+{
+  "name": "@superhaptic/core",
+  "version": "0.1.0",
+  "description": "A lightweight library for haptic feedback on the web, bringing mobile-like tactile experiences to browsers",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts --clean",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "prepare": "npm run build",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\"",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run lint && npm run typecheck && npm run build",
+    "test": "echo \"Tests coming soon\" && exit 0",
+    "size": "size-limit",
+    "analyze": "size-limit --why"
+  },
+  "keywords": [
+    "haptic",
+    "vibration",
+    "feedback",
+    "tactile",
+    "mobile",
+    "ux",
+    "vibrate",
+    "haptics"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/superhaptic"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/superhaptic/issues"
+  },
+  "homepage": "https://github.com/yourusername/superhaptic#readme",
+  "devDependencies": {
+    "@size-limit/preset-small-lib": "^11.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "prettier": "^3.0.0",
+    "size-limit": "^11.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.3.0"
+  },
+  "size-limit": [
+    {
+      "path": "dist/index.js",
+      "limit": "10 KB"
+    },
+    {
+      "path": "dist/index.mjs",
+      "limit": "8 KB"
+    }
+  ],
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

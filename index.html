@@ -1,0 +1,2004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Superhaptic - Haptic Feedback for the Web</title>
+
+  <!-- Figtree Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800&family=Fira+Code:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+  <!-- Shiki Syntax Highlighting -->
+  <script type="module">
+    import { codeToHtml } from 'https://esm.sh/shiki@1.0.0';
+
+    window.highlightCode = async (code, lang = 'javascript') => {
+      return await codeToHtml(code, {
+        lang,
+        theme: 'rose-pine-dawn',
+        structure: 'inline'
+      });
+    };
+  </script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 100px;
+    }
+
+    :root {
+      --pink-light: #F8B4C6;
+      --pink-medium: #F4729E;
+      --pink-dark: #EC407A;
+      --white: #ffffff;
+      --gray-50: #fafafa;
+      --gray-100: #f5f5f5;
+      --gray-200: #e5e5e5;
+      --gray-800: #262626;
+      --gray-900: #171717;
+    }
+
+    body {
+      font-family: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      font-feature-settings: 'ss01' on;
+      letter-spacing: -0.01em;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 245, 248, 0.65) 30%, rgba(255, 255, 255, 0.7) 100%),
+        url('bg.png') center/cover fixed;
+      color: var(--gray-900);
+      line-height: 1.6;
+      overflow-x: hidden;
+      min-height: 100vh;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(circle at 20% 50%, rgba(248, 180, 198, 0.08) 0%, transparent 50%),
+                  radial-gradient(circle at 80% 80%, rgba(244, 114, 158, 0.06) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+      animation: bgPulse 20s ease-in-out infinite;
+    }
+
+    @keyframes bgPulse {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.8;
+      }
+    }
+
+    body > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Blur to Clear Animation */
+    @keyframes blurToClear {
+      0% {
+        filter: blur(20px);
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      100% {
+        filter: blur(0);
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .blur-animate {
+      animation: blurToClear 1s ease-out forwards;
+    }
+
+    /* Navbar */
+    .navbar {
+      position: fixed;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      max-width: 60%;
+      width: calc(100% - 48px);
+      z-index: 1000;
+      backdrop-filter: blur(20px);
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(248, 180, 198, 0.3);
+      border-radius: 100px;
+      padding: 16px 32px;
+      animation: blurToClear 0.8s ease-out;
+      box-shadow:
+        0 8px 32px rgba(236, 64, 122, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .navbar.scrolled {
+      top: 12px;
+      padding: 12px 24px;
+      max-width: 50%;
+    }
+
+    .navbar.scrolled .navbar-logo {
+      font-size: 1.15rem;
+    }
+
+    .navbar.scrolled .navbar-links {
+      gap: 28px;
+    }
+
+    .navbar.scrolled .navbar-links a {
+      font-size: 0.95rem;
+    }
+
+    .navbar:hover {
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow:
+        0 12px 40px rgba(236, 64, 122, 0.16),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+      border-color: rgba(248, 180, 198, 0.4);
+    }
+
+    .navbar-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .navbar-logo {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--pink-dark);
+      transition: font-size 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .navbar-links {
+      display: flex;
+      gap: 40px;
+      align-items: center;
+      transition: gap 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .navbar-links a {
+      color: var(--gray-800);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.95rem;
+      transition: color 0.3s, font-size 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .navbar-links a:hover {
+      color: var(--pink-dark);
+    }
+
+    /* Hero Section */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      padding: 140px 20px 80px;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      width: 800px;
+      height: 800px;
+      background: radial-gradient(circle, rgba(248, 180, 198, 0.15) 0%, transparent 70%);
+      border-radius: 50%;
+      top: -400px;
+      right: -200px;
+      animation: float 20s ease-in-out infinite;
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(244, 114, 158, 0.1) 0%, transparent 70%);
+      border-radius: 50%;
+      bottom: -300px;
+      left: -200px;
+      animation: float 15s ease-in-out infinite reverse;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(50px, 50px) scale(1.1); }
+    }
+
+    .hero-content {
+      max-width: 900px;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.8rem, 6.5vw, 5.2rem);
+      font-weight: 800;
+      margin-bottom: 24px;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      background: linear-gradient(135deg, var(--pink-dark) 0%, var(--pink-medium) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: blurToClear 1s ease-out 0.2s backwards;
+    }
+
+    .hero-subtitle {
+      font-size: clamp(1rem, 2.5vw, 1.4rem);
+      margin-bottom: 40px;
+      color: var(--gray-800);
+      max-width: 700px;
+      font-weight: 400;
+      line-height: 1.5;
+      animation: blurToClear 1s ease-out 0.4s backwards;
+    }
+
+    .cta-buttons {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 60px;
+      animation: blurToClear 1s ease-out 0.6s backwards;
+    }
+
+    .btn {
+      padding: 18px 40px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 100px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      position: relative;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--pink-medium) 0%, var(--pink-dark) 100%);
+      color: var(--white);
+      box-shadow:
+        0 4px 14px rgba(236, 64, 122, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow:
+        0 8px 24px rgba(236, 64, 122, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.9);
+      color: var(--pink-dark);
+      border: 1.5px solid rgba(236, 64, 122, 0.2);
+      backdrop-filter: blur(10px);
+    }
+
+    .btn-secondary:hover {
+      background: var(--white);
+      border-color: var(--pink-medium);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 14px rgba(236, 64, 122, 0.15);
+    }
+
+    /* Interactive Demo */
+    /* Hero Mockups */
+    .hero-mockup {
+      max-width: 900px;
+      margin: 0 auto;
+      animation: blurToClear 1s ease-out 0.8s backwards;
+    }
+
+    .hero-mockup.desktop-mockup {
+      max-width: 60%;
+    }
+
+    .hero-mockup.mobile-mockup {
+      max-width: 360px;
+    }
+
+    @media (max-width: 1400px) {
+      .hero-mockup.desktop-mockup {
+        max-width: 80%;
+      }
+    }
+
+    /* Section Styles */
+    .section {
+      padding: 120px 40px;
+      max-width: 60%;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 1400px) {
+      .section {
+        max-width: 80%;
+      }
+    }
+
+    .section-title {
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      font-weight: 800;
+      margin-bottom: 20px;
+      text-align: center;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+      color: var(--gray-900);
+    }
+
+    .section-description {
+      font-size: clamp(0.95rem, 1.8vw, 1.2rem);
+      text-align: center;
+      color: var(--gray-800);
+      max-width: 700px;
+      margin: 0 auto 60px;
+      font-weight: 400;
+    }
+
+    /* Features Grid */
+    .features {
+      background: transparent;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 32px;
+      margin-top: 60px;
+    }
+
+    .feature-card {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(20px);
+      padding: 48px;
+      border-radius: 32px;
+      border: 1px solid rgba(248, 180, 198, 0.3);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow:
+        0 4px 24px rgba(236, 64, 122, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    }
+
+    .feature-card:hover {
+      transform: translateY(-8px);
+      box-shadow:
+        0 12px 48px rgba(236, 64, 122, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+      border-color: rgba(244, 114, 158, 0.5);
+    }
+
+    .feature-icon {
+      font-size: 2.8rem;
+      margin-bottom: 24px;
+      filter: drop-shadow(0 4px 8px rgba(236, 64, 122, 0.1));
+      color: var(--pink-dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .feature-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--gray-900);
+      letter-spacing: -0.01em;
+    }
+
+    .feature-description {
+      color: var(--gray-800);
+      line-height: 1.7;
+      font-weight: 400;
+      font-size: 0.9rem;
+    }
+
+    /* How It Works Section */
+    .how-it-works {
+      background: linear-gradient(180deg, transparent 0%, rgba(248, 180, 198, 0.05) 50%, transparent 100%);
+    }
+
+    .steps-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 48px;
+      margin-top: 60px;
+    }
+
+    .step-card {
+      text-align: center;
+    }
+
+    .step-number {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 24px;
+      background: linear-gradient(135deg, var(--pink-medium) 0%, var(--pink-dark) 100%);
+      color: var(--white);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      font-weight: 800;
+      box-shadow: 0 8px 24px rgba(236, 64, 122, 0.25);
+    }
+
+    .step-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--gray-900);
+    }
+
+    .step-description {
+      color: var(--gray-800);
+      line-height: 1.7;
+      font-size: 0.9rem;
+    }
+
+    /* Installation Section */
+    .installation {
+      background: transparent;
+    }
+
+    .code-block {
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(248, 180, 198, 0.3);
+      border-radius: 24px;
+      padding: 32px;
+      margin: 30px 0;
+      position: relative;
+      overflow-x: auto;
+      box-shadow:
+        0 4px 24px rgba(236, 64, 122, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    }
+
+    .code-block pre {
+      margin: 0;
+      font-family: 'Fira Code', 'Monaco', 'Menlo', 'Courier New', monospace;
+      font-size: 0.85rem;
+      line-height: 1.8;
+      overflow-x: auto;
+      font-feature-settings: 'liga' 1, 'calt' 1;
+    }
+
+    .code-block code {
+      font-family: 'Fira Code', 'Monaco', 'Menlo', 'Courier New', monospace;
+      font-size: 0.85rem;
+      font-feature-settings: 'liga' 1, 'calt' 1;
+    }
+
+    /* Shiki override for better glass effect */
+    .code-block .shiki {
+      background: transparent !important;
+      padding: 0;
+    }
+
+    .code-label {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: linear-gradient(135deg, var(--pink-medium) 0%, var(--pink-dark) 100%);
+      color: var(--white);
+      padding: 6px 16px;
+      border-radius: 100px;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+
+    .copy-button {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      color: var(--pink-dark);
+      border: 1.5px solid rgba(236, 64, 122, 0.3);
+      padding: 8px 16px;
+      border-radius: 100px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'Figtree', sans-serif;
+    }
+
+    .copy-button:hover {
+      background: var(--white);
+      border-color: var(--pink-medium);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(236, 64, 122, 0.2);
+    }
+
+    .copy-button:active {
+      transform: translateY(0);
+    }
+
+    .copy-button.copied {
+      background: linear-gradient(135deg, var(--pink-medium) 0%, var(--pink-dark) 100%);
+      color: var(--white);
+      border-color: transparent;
+    }
+
+    .copy-button i {
+      font-size: 1rem;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      background: rgba(255, 255, 255, 0.5);
+      backdrop-filter: blur(10px);
+      padding: 6px;
+      border-radius: 100px;
+      width: fit-content;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .tab {
+      padding: 12px 28px;
+      background: transparent;
+      color: var(--gray-800);
+      border: none;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: all 0.3s;
+      border-radius: 100px;
+    }
+
+    .tab.active {
+      background: linear-gradient(135deg, var(--pink-medium) 0%, var(--pink-dark) 100%);
+      color: var(--white);
+      box-shadow: 0 4px 12px rgba(236, 64, 122, 0.25);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Testimonials Section */
+    .testimonials {
+      background: linear-gradient(180deg, rgba(248, 180, 198, 0.05) 0%, transparent 100%);
+    }
+
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 32px;
+      margin-top: 60px;
+    }
+
+    .testimonial-card {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(20px);
+      padding: 40px;
+      border-radius: 28px;
+      border: 1px solid rgba(248, 180, 198, 0.3);
+      box-shadow:
+        0 4px 24px rgba(236, 64, 122, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+      transition: transform 0.3s;
+    }
+
+    .testimonial-card:hover {
+      transform: translateY(-4px);
+    }
+
+    .testimonial-quote {
+      font-size: 1rem;
+      line-height: 1.7;
+      color: var(--gray-900);
+      margin-bottom: 24px;
+      font-style: italic;
+    }
+
+    .testimonial-author {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .author-avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--pink-medium) 0%, var(--pink-dark) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--white);
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+
+    .author-info {
+      flex: 1;
+    }
+
+    .author-name {
+      font-weight: 700;
+      color: var(--gray-900);
+      margin-bottom: 4px;
+    }
+
+    .author-role {
+      font-size: 0.85rem;
+      color: var(--gray-800);
+    }
+
+    /* Examples Section */
+    .examples-grid {
+      display: grid;
+      gap: 32px;
+      margin-top: 60px;
+    }
+
+    .example-card {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(248, 180, 198, 0.3);
+      border-radius: 28px;
+      overflow: hidden;
+      box-shadow:
+        0 4px 24px rgba(236, 64, 122, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    }
+
+    .example-header {
+      background: linear-gradient(135deg, var(--pink-medium) 0%, var(--pink-dark) 100%);
+      color: var(--white);
+      padding: 24px 32px;
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .example-content {
+      padding: 32px;
+    }
+
+    .example-demo {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    .example-btn {
+      padding: 16px 32px;
+      background: linear-gradient(135deg, var(--pink-medium) 0%, var(--pink-dark) 100%);
+      color: var(--white);
+      border: none;
+      border-radius: 100px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 4px 14px rgba(236, 64, 122, 0.25);
+    }
+
+    .example-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(236, 64, 122, 0.35);
+    }
+
+    .example-code {
+      background: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(248, 180, 198, 0.3);
+      border-radius: 16px;
+      padding: 24px;
+      font-family: 'Fira Code', 'Monaco', 'Menlo', 'Courier New', monospace;
+      font-size: 0.8rem;
+      overflow-x: auto;
+      line-height: 1.7;
+      font-feature-settings: 'liga' 1, 'calt' 1;
+    }
+
+    .example-code .shiki {
+      background: transparent !important;
+      padding: 0;
+    }
+
+    .example-code pre {
+      margin: 0;
+    }
+
+    /* Social Proof */
+    .social-proof {
+      text-align: center;
+      padding: 60px 40px;
+      max-width: 60%;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 1400px) {
+      .social-proof {
+        max-width: 80%;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .social-proof {
+        max-width: 100%;
+      }
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 48px;
+      margin-top: 48px;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 2.8rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--pink-medium) 0%, var(--pink-dark) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+      margin-bottom: 12px;
+    }
+
+    .stat-label {
+      font-size: 0.95rem;
+      color: var(--gray-800);
+      font-weight: 500;
+    }
+
+    /* CTA Section */
+    .cta-section {
+      background: linear-gradient(135deg, var(--pink-medium) 0%, var(--pink-dark) 100%);
+      color: var(--white);
+      padding: 100px 40px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-section::before {
+      content: '';
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+      border-radius: 50%;
+      top: -250px;
+      right: -100px;
+    }
+
+    .cta-content {
+      max-width: 800px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .cta-section h2 {
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      font-weight: 800;
+      margin-bottom: 24px;
+      letter-spacing: -0.03em;
+    }
+
+    .cta-section p {
+      font-size: 1.2rem;
+      margin-bottom: 40px;
+      opacity: 0.95;
+    }
+
+    .cta-section .btn {
+      background: var(--white);
+      color: var(--pink-dark);
+      font-size: 1.05rem;
+      padding: 20px 48px;
+    }
+
+    .cta-section .btn:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Footer */
+    .footer {
+      background: var(--gray-900);
+      color: var(--white);
+      padding: 80px 40px 40px;
+      text-align: center;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 40px;
+      justify-content: center;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a {
+      color: var(--white);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s;
+      font-size: 0.9rem;
+    }
+
+    .footer-links a:hover {
+      color: var(--pink-light);
+    }
+
+    .footer-social {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      margin-bottom: 32px;
+    }
+
+    .social-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      transition: all 0.3s;
+      text-decoration: none;
+      color: var(--white);
+    }
+
+    .social-icon i {
+      font-size: 1.2rem;
+    }
+
+    .social-icon:hover {
+      background: var(--pink-medium);
+      transform: translateY(-4px);
+    }
+
+    .footer-bottom {
+      padding-top: 32px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .section {
+        padding: 80px 24px;
+        max-width: 100%;
+      }
+
+      .navbar {
+        top: 16px;
+        max-width: 95%;
+        width: calc(100% - 32px);
+        padding: 14px 20px;
+        border-radius: 50px;
+      }
+
+      .navbar-logo {
+        font-size: 1.2rem;
+      }
+
+      .navbar-links {
+        gap: 16px;
+      }
+
+      .navbar-links a {
+        font-size: 0.85rem;
+      }
+
+      .hero {
+        padding: 100px 24px 60px;
+      }
+
+      .cta-buttons {
+        margin-bottom: 40px;
+        flex-direction: column;
+        width: 100%;
+      }
+
+      .btn {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .example-demo {
+        flex-direction: column;
+      }
+
+      .example-btn {
+        width: 100%;
+      }
+
+      .hero-mockup.desktop-mockup {
+        max-width: 95%;
+      }
+
+      .hero-mockup.desktop-mockup .mockup-screen {
+        padding: 20px;
+        min-height: 300px;
+      }
+
+      .hero-mockup .demo-buttons {
+        flex-direction: column;
+      }
+
+      .hero-mockup .ui-btn {
+        min-width: 100%;
+      }
+
+      .hero-mockup.mobile-mockup {
+        transform: scale(0.9);
+        max-width: 100%;
+      }
+
+      .features-grid,
+      .steps-container,
+      .testimonials-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .feature-card {
+        padding: 32px;
+      }
+
+      .tabs {
+        width: 100%;
+        flex-wrap: wrap;
+      }
+
+      .tab {
+        flex: 1;
+        min-width: 80px;
+        padding: 10px 16px;
+        font-size: 0.9rem;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 32px;
+      }
+
+      .cta-section {
+        padding: 80px 24px;
+      }
+
+      .footer {
+        padding: 60px 24px 32px;
+      }
+
+      .footer-links {
+        flex-direction: column;
+        gap: 20px;
+      }
+    }
+
+    /* Device Mockups */
+
+    .device-mockup {
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(20px);
+      border-radius: 32px;
+      box-shadow:
+        0 20px 60px rgba(236, 64, 122, 0.15),
+        0 0 0 1px rgba(248, 180, 198, 0.3);
+      overflow: hidden;
+      transition: all 0.4s ease;
+    }
+
+    .device-mockup:hover {
+      transform: translateY(-8px);
+      box-shadow:
+        0 32px 80px rgba(236, 64, 122, 0.2),
+        0 0 0 1px rgba(248, 180, 198, 0.5);
+    }
+
+    /* Desktop Mockup */
+    .desktop-mockup {
+      border: 8px solid rgba(248, 180, 198, 0.3);
+    }
+
+    .mockup-header {
+      background: rgba(248, 180, 198, 0.1);
+      backdrop-filter: blur(10px);
+      padding: 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid rgba(248, 180, 198, 0.2);
+    }
+
+    .traffic-lights {
+      display: flex;
+      gap: 8px;
+    }
+
+    .traffic-lights span {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--gray-300);
+    }
+
+    .traffic-lights span:nth-child(1) { background: #ff5f57; }
+    .traffic-lights span:nth-child(2) { background: #ffbd2e; }
+    .traffic-lights span:nth-child(3) { background: #28ca42; }
+
+    .url-bar {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(10px);
+      padding: 8px 16px;
+      border-radius: 100px;
+      font-size: 0.75rem;
+      color: var(--gray-800);
+      text-align: center;
+      border: 1px solid rgba(248, 180, 198, 0.2);
+    }
+
+    .mockup-screen {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 245, 248, 0.5) 100%);
+      padding: 40px;
+      min-height: 400px;
+    }
+
+    /* Mobile Mockup */
+    .mobile-mockup {
+      max-width: 320px;
+      margin: 0 auto;
+      border: 12px solid rgba(248, 180, 198, 0.4);
+      border-radius: 48px;
+      position: relative;
+    }
+
+    .mobile-notch {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 140px;
+      height: 28px;
+      background: rgba(248, 180, 198, 0.4);
+      border-radius: 0 0 20px 20px;
+      z-index: 10;
+    }
+
+    .mobile-screen {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 245, 248, 0.5) 100%);
+      min-height: 600px;
+      padding: 0;
+    }
+
+    .mobile-statusbar {
+      display: flex;
+      justify-content: space-between;
+      padding: 34px 20px 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--gray-800);
+    }
+
+    /* Demo App Styles */
+    .demo-app {
+      padding: 24px;
+    }
+
+    .mobile-app {
+      padding: 12px 20px 20px;
+    }
+
+    .demo-app-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-bottom: 24px;
+      text-align: center;
+      background: linear-gradient(135deg, var(--pink-medium) 0%, var(--pink-dark) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .demo-buttons {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .ui-btn {
+      flex: 1;
+      min-width: 120px;
+      padding: 18px 20px;
+      background: linear-gradient(135deg, var(--pink-medium) 0%, var(--pink-dark) 100%);
+      color: var(--white);
+      border: none;
+      border-radius: 16px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(236, 64, 122, 0.25);
+    }
+
+    .ui-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(236, 64, 122, 0.35);
+    }
+
+    .ui-btn:active {
+      transform: translateY(0);
+    }
+
+    .error-btn {
+      background: rgba(255, 255, 255, 0.9);
+      color: var(--pink-dark);
+      border: 1.5px solid rgba(236, 64, 122, 0.3);
+      box-shadow: 0 4px 14px rgba(236, 64, 122, 0.15);
+    }
+
+    .btn-icon {
+      font-size: 1.4rem;
+    }
+
+    .btn-text {
+      font-size: 0.8rem;
+    }
+
+    /* Toggle Switch */
+    .demo-toggle-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 24px;
+      background: rgba(248, 180, 198, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      border: 1px solid rgba(248, 180, 198, 0.2);
+    }
+
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 60px;
+      height: 34px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(200, 200, 200, 0.5);
+      transition: 0.4s;
+      border-radius: 34px;
+    }
+
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 26px;
+      width: 26px;
+      left: 4px;
+      bottom: 4px;
+      background-color: var(--white);
+      transition: 0.4s;
+      border-radius: 50%;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .toggle-switch input:checked + .toggle-slider {
+      background: linear-gradient(135deg, var(--pink-medium) 0%, var(--pink-dark) 100%);
+    }
+
+    .toggle-switch input:checked + .toggle-slider:before {
+      transform: translateX(26px);
+    }
+
+    .toggle-label {
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: var(--gray-800);
+    }
+
+    /* Mobile List */
+    .mobile-list {
+      margin: 20px 0;
+    }
+
+    .list-item {
+      display: flex;
+      align-items: center;
+      padding: 18px;
+      background: rgba(255, 255, 255, 0.5);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(248, 180, 198, 0.2);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .list-item:hover {
+      background: rgba(248, 180, 198, 0.15);
+    }
+
+    .list-item:active {
+      background: rgba(248, 180, 198, 0.25);
+      transform: scale(0.98);
+    }
+
+    .item-icon {
+      font-size: 1.5rem;
+      margin-right: 16px;
+    }
+
+    .item-content {
+      flex: 1;
+    }
+
+    .item-title {
+      font-weight: 700;
+      font-size: 0.9rem;
+      margin-bottom: 4px;
+      color: var(--gray-900);
+    }
+
+    .item-subtitle {
+      font-size: 0.75rem;
+      color: var(--gray-800);
+    }
+
+    .item-arrow {
+      font-size: 1.3rem;
+      color: var(--pink-medium);
+    }
+
+    /* Mobile Action Bar */
+    .mobile-action-bar {
+      display: flex;
+      justify-content: space-around;
+      padding: 20px;
+      border-top: 1px solid rgba(248, 180, 198, 0.2);
+      background: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(10px);
+      margin-top: 20px;
+    }
+
+    .mobile-action-btn {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(248, 180, 198, 0.2);
+      font-size: 1.3rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .mobile-action-btn:hover {
+      background: rgba(248, 180, 198, 0.3);
+      transform: scale(1.1);
+    }
+
+    .mobile-action-btn:active {
+      background: linear-gradient(135deg, var(--pink-medium) 0%, var(--pink-dark) 100%);
+      transform: scale(0.95);
+    }
+
+    /* Scroll Animations */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-content">
+      <div class="navbar-logo">superhaptic</div>
+      <div class="navbar-links">
+        <a href="#features">Features</a>
+        <a href="#how-it-works">How It Works</a>
+        <a href="#installation">Installation</a>
+        <a href="https://github.com/yourusername/superhaptic" target="_blank">GitHub</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1>Feel the Web Come to Life</h1>
+      <p class="hero-subtitle">Bring mobile-like tactile experiences to your web applications with seamless haptic and audio feedback</p>
+
+      <div class="cta-buttons">
+        <a href="#installation" class="btn btn-primary">Get Started →</a>
+        <a href="https://github.com/yourusername/superhaptic" class="btn btn-secondary">View on GitHub</a>
+      </div>
+
+      <p style="text-align: center; font-size: 0.9rem; margin-bottom: 40px; color: var(--gray-800); font-weight: 500;" id="device-detection-info" class="blur-animate">
+        Loading interactive demo...
+      </p>
+
+      <!-- Desktop Mockup - Shown only on desktop -->
+      <div class="device-mockup desktop-mockup hero-mockup" id="hero-desktop-mockup" style="display: none;">
+        <div class="mockup-header">
+          <div class="traffic-lights">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+          <div class="url-bar">superhaptic-demo.com</div>
+        </div>
+        <div class="mockup-screen">
+          <div class="demo-app">
+            <h3 class="demo-app-title">Try It Live!</h3>
+            <div class="demo-buttons">
+              <button class="ui-btn" onclick="mockupDemo('light')">
+                <span class="btn-icon">💡</span>
+                <span class="btn-text">Light Tap</span>
+              </button>
+              <button class="ui-btn" onclick="mockupDemo('success')">
+                <span class="btn-icon">✓</span>
+                <span class="btn-text">Save</span>
+              </button>
+              <button class="ui-btn error-btn" onclick="mockupDemo('error')">
+                <span class="btn-icon">✕</span>
+                <span class="btn-text">Delete</span>
+              </button>
+            </div>
+            <div class="demo-toggle-container">
+              <label class="toggle-switch">
+                <input type="checkbox" onchange="mockupToggle(this)">
+                <span class="toggle-slider"></span>
+              </label>
+              <span class="toggle-label">Enable Notifications</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile Mockup - Shown only on mobile -->
+      <div class="device-mockup mobile-mockup hero-mockup" id="hero-mobile-mockup" style="display: none;">
+        <div class="mobile-notch"></div>
+        <div class="mockup-screen mobile-screen">
+          <div class="mobile-statusbar">
+            <span>9:41</span>
+            <span>📶 📡 🔋</span>
+          </div>
+          <div class="demo-app mobile-app">
+            <h3 class="demo-app-title">Try It Live!</h3>
+            <div class="mobile-list">
+              <div class="list-item" onclick="mockupDemo('selection')">
+                <span class="item-icon">📧</span>
+                <div class="item-content">
+                  <div class="item-title">New Message</div>
+                  <div class="item-subtitle">Tap to read</div>
+                </div>
+                <span class="item-arrow">›</span>
+              </div>
+              <div class="list-item" onclick="mockupDemo('notification')">
+                <span class="item-icon">🔔</span>
+                <div class="item-content">
+                  <div class="item-title">Notification</div>
+                  <div class="item-subtitle">Important alert</div>
+                </div>
+                <span class="item-arrow">›</span>
+              </div>
+              <div class="list-item" onclick="mockupDemo('warning')">
+                <span class="item-icon">⚠️</span>
+                <div class="item-content">
+                  <div class="item-title">Warning</div>
+                  <div class="item-subtitle">Requires attention</div>
+                </div>
+                <span class="item-arrow">›</span>
+              </div>
+            </div>
+            <div class="mobile-action-bar">
+              <button class="mobile-action-btn" onclick="mockupDemo('light')">
+                <span>🏠</span>
+              </button>
+              <button class="mobile-action-btn" onclick="mockupDemo('medium')">
+                <span>🔍</span>
+              </button>
+              <button class="mobile-action-btn" onclick="mockupDemo('heavy')">
+                <span>⚙️</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Social Proof -->
+  <section class="social-proof">
+    <div class="stats-grid">
+      <div class="stat-item fade-in">
+        <div class="stat-number">5KB</div>
+        <div class="stat-label">Tiny Bundle Size</div>
+      </div>
+      <div class="stat-item fade-in">
+        <div class="stat-number">0</div>
+        <div class="stat-label">Dependencies</div>
+      </div>
+      <div class="stat-item fade-in">
+        <div class="stat-number">100%</div>
+        <div class="stat-label">TypeScript</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section id="features" class="section features">
+    <h2 class="section-title fade-in">Why Developers Love Superhaptic</h2>
+    <p class="section-description fade-in">Everything you need to add delightful haptic feedback to your web apps</p>
+    <div class="features-grid">
+      <div class="feature-card fade-in">
+        <div class="feature-icon">
+          <i class="ph ph-device-mobile" weight="duotone"></i>
+        </div>
+        <h3 class="feature-title">Mobile-First</h3>
+        <p class="feature-description">Vibration patterns optimized for mobile devices, mimicking iOS and Android haptics perfectly</p>
+      </div>
+
+      <div class="feature-card fade-in">
+        <div class="feature-icon">
+          <i class="ph ph-speaker-high" weight="duotone"></i>
+        </div>
+        <h3 class="feature-title">Audio Fallback</h3>
+        <p class="feature-description">Automatic audio feedback on desktop browsers where vibration isn't available</p>
+      </div>
+
+      <div class="feature-card fade-in">
+        <div class="feature-icon">
+          <i class="ph ph-lightning" weight="duotone"></i>
+        </div>
+        <h3 class="feature-title">Instant Setup</h3>
+        <p class="feature-description">Simple API with preset patterns - get started in seconds, not hours</p>
+      </div>
+
+      <div class="feature-card fade-in">
+        <div class="feature-icon">
+          <i class="ph ph-feather" weight="duotone"></i>
+        </div>
+        <h3 class="feature-title">Ultra Lightweight</h3>
+        <p class="feature-description">Zero dependencies, ~5KB bundle size - no bloat, just pure performance</p>
+      </div>
+
+      <div class="feature-card fade-in">
+        <div class="feature-icon">
+          <i class="ph ph-code" weight="duotone"></i>
+        </div>
+        <h3 class="feature-title">TypeScript Ready</h3>
+        <p class="feature-description">Full type definitions included for the best developer experience</p>
+      </div>
+
+      <div class="feature-card fade-in">
+        <div class="feature-icon">
+          <i class="ph ph-globe" weight="duotone"></i>
+        </div>
+        <h3 class="feature-title">Universal Support</h3>
+        <p class="feature-description">Works with npm, pnpm, yarn, bun - all major browsers supported</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works Section -->
+  <section id="how-it-works" class="section how-it-works">
+    <h2 class="section-title fade-in">How It Works</h2>
+    <p class="section-description fade-in">Three simple steps to add haptic feedback to your app</p>
+    <div class="steps-container">
+      <div class="step-card fade-in">
+        <div class="step-number">1</div>
+        <h3 class="step-title">Install</h3>
+        <p class="step-description">Add superhaptic to your project using your favorite package manager</p>
+      </div>
+      <div class="step-card fade-in">
+        <div class="step-number">2</div>
+        <h3 class="step-title">Import</h3>
+        <p class="step-description">Import the library into your JavaScript or TypeScript file</p>
+      </div>
+      <div class="step-card fade-in">
+        <div class="step-number">3</div>
+        <h3 class="step-title">Use</h3>
+        <p class="step-description">Call superhaptic methods to add feedback to user interactions</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Installation Section -->
+  <section id="installation" class="section installation">
+    <h2 class="section-title fade-in">Installation</h2>
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('npm')">npm</button>
+      <button class="tab" onclick="switchTab('pnpm')">pnpm</button>
+      <button class="tab" onclick="switchTab('yarn')">yarn</button>
+      <button class="tab" onclick="switchTab('bun')">bun</button>
+    </div>
+
+    <div id="npm" class="tab-content active">
+      <div class="code-block">
+        <button class="copy-button" onclick="copyCode(this, 'npm install @superhaptic/core')">
+          <i class="ph ph-copy"></i>
+          <span>Copy</span>
+        </button>
+        <pre><code class="language-bash">npm install @superhaptic/core</code></pre>
+      </div>
+    </div>
+
+    <div id="pnpm" class="tab-content">
+      <div class="code-block">
+        <button class="copy-button" onclick="copyCode(this, 'pnpm add @superhaptic/core')">
+          <i class="ph ph-copy"></i>
+          <span>Copy</span>
+        </button>
+        <pre><code class="language-bash">pnpm add @superhaptic/core</code></pre>
+      </div>
+    </div>
+
+    <div id="yarn" class="tab-content">
+      <div class="code-block">
+        <button class="copy-button" onclick="copyCode(this, 'yarn add @superhaptic/core')">
+          <i class="ph ph-copy"></i>
+          <span>Copy</span>
+        </button>
+        <pre><code class="language-bash">yarn add @superhaptic/core</code></pre>
+      </div>
+    </div>
+
+    <div id="bun" class="tab-content">
+      <div class="code-block">
+        <button class="copy-button" onclick="copyCode(this, 'bun add @superhaptic/core')">
+          <i class="ph ph-copy"></i>
+          <span>Copy</span>
+        </button>
+        <pre><code class="language-bash">bun add @superhaptic/core</code></pre>
+      </div>
+    </div>
+
+    <div class="code-block fade-in">
+      <button class="copy-button" onclick="copyCode(this, `import superhaptic from '@superhaptic/core';\n\n// Use preset patterns\nsuperhaptic.preset('success');  // ✓ Vibrates or plays sound\n\n// Custom pattern\nsuperhaptic.vibrate(50);        // Single 50ms vibration\n\n// Control\nsuperhaptic.disable();          // Turn off\nsuperhaptic.enable();           // Turn on`)">
+        <i class="ph ph-copy"></i>
+        <span>Copy</span>
+      </button>
+      <pre><code class="language-javascript">import superhaptic from '@superhaptic/core';
+
+// Use preset patterns
+superhaptic.preset('success');  // ✓ Vibrates or plays sound
+
+// Custom pattern
+superhaptic.vibrate(50);        // Single 50ms vibration
+
+// Control
+superhaptic.disable();          // Turn off
+superhaptic.enable();           // Turn on</code></pre>
+    </div>
+  </section>
+
+  <!-- Testimonials Section -->
+  <section class="section testimonials">
+    <h2 class="section-title fade-in">What Developers Say</h2>
+    <p class="section-description fade-in">Join thousands of developers building better experiences</p>
+    <div class="testimonials-grid">
+      <div class="testimonial-card fade-in">
+        <p class="testimonial-quote">"Superhaptic transformed our mobile web experience. Users love the tactile feedback - it feels native!"</p>
+        <div class="testimonial-author">
+          <div class="author-avatar">S</div>
+          <div class="author-info">
+            <div class="author-name">Sarah Chen</div>
+            <div class="author-role">Lead Developer @ TechCo</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial-card fade-in">
+        <p class="testimonial-quote">"The API is so simple yet powerful. Added haptics to our entire app in under an hour. Game changer!"</p>
+        <div class="testimonial-author">
+          <div class="author-avatar">M</div>
+          <div class="author-info">
+            <div class="author-name">Marcus Johnson</div>
+            <div class="author-role">Frontend Engineer @ StartupXYZ</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial-card fade-in">
+        <p class="testimonial-quote">"Finally, a haptic library that just works. Zero config, TypeScript support, and it's tiny. Perfect!"</p>
+        <div class="testimonial-author">
+          <div class="author-avatar">A</div>
+          <div class="author-info">
+            <div class="author-name">Aisha Patel</div>
+            <div class="author-role">Full Stack Developer</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Examples Section -->
+  <section class="section">
+    <h2 class="section-title fade-in">Try It Live</h2>
+    <p class="section-description fade-in">Click the buttons below to experience superhaptic in action</p>
+
+    <div class="examples-grid">
+      <!-- Button Feedback -->
+      <div class="example-card fade-in">
+        <div class="example-header">Button Feedback</div>
+        <div class="example-content">
+          <div class="example-demo">
+            <button class="example-btn" onclick="exampleButton()">Click Me!</button>
+          </div>
+          <div class="example-code">
+<pre><code class="language-javascript">button.addEventListener('click', () => {
+  superhaptic.preset('light');
+  // Handle click...
+});</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Validation -->
+      <div class="example-card fade-in">
+        <div class="example-header">Form Validation</div>
+        <div class="example-content">
+          <div class="example-demo">
+            <button class="example-btn" onclick="exampleSuccess()">Submit Valid Form</button>
+            <button class="example-btn" onclick="exampleError()">Submit Invalid Form</button>
+          </div>
+          <div class="example-code">
+<pre><code class="language-javascript">if (isValid) {
+  superhaptic.preset('success');
+  submitForm();
+} else {
+  superhaptic.preset('error');
+  showErrors();
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Toggle Switch -->
+      <div class="example-card fade-in">
+        <div class="example-header">Toggle Switch</div>
+        <div class="example-content">
+          <div class="example-demo">
+            <button class="example-btn" id="toggle-btn" onclick="exampleToggle(this)">Toggle: OFF</button>
+          </div>
+          <div class="example-code">
+<pre><code class="language-javascript">toggle.addEventListener('change', (e) => {
+  const intensity = e.target.checked ? 20 : 10;
+  superhaptic.vibrate(intensity);
+});</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notification -->
+      <div class="example-card fade-in">
+        <div class="example-header">Notifications</div>
+        <div class="example-content">
+          <div class="example-demo">
+            <button class="example-btn" onclick="exampleNotification()">Show Notification</button>
+          </div>
+          <div class="example-code">
+<pre><code class="language-javascript">function showNotification() {
+  superhaptic.preset('notification');
+  toast.show('New message!');
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Custom Pattern -->
+      <div class="example-card fade-in">
+        <div class="example-header">Custom Patterns</div>
+        <div class="example-content">
+          <div class="example-demo">
+            <button class="example-btn" onclick="exampleCustom()">Custom Pattern</button>
+          </div>
+          <div class="example-code">
+<pre><code class="language-javascript">// [vibrate, pause, vibrate, pause, ...]
+superhaptic.vibrate([50, 100, 50, 100, 50]);
+
+// Complex rhythm
+superhaptic.vibrate([10, 50, 20, 50, 30]);</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <div class="cta-content">
+      <h2>Ready to Feel the Difference?</h2>
+      <p>Start adding delightful haptic feedback to your web applications today</p>
+      <a href="#installation" class="btn">Get Started for Free</a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-links">
+      <a href="https://github.com/yourusername/superhaptic">GitHub</a>
+      <a href="https://www.npmjs.com/package/superhaptic">NPM</a>
+      <a href="https://github.com/yourusername/superhaptic/blob/main/README.md">Documentation</a>
+      <a href="https://github.com/yourusername/superhaptic/issues">Report Issue</a>
+    </div>
+    <div class="footer-social">
+      <a href="#" class="social-icon"><i class="ph ph-twitter-logo"></i></a>
+      <a href="https://github.com/yourusername/superhaptic" class="social-icon"><i class="ph ph-github-logo"></i></a>
+      <a href="#" class="social-icon"><i class="ph ph-discord-logo"></i></a>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 Superhaptic. MIT License.</p>
+      <p style="margin-top: 10px; opacity: 0.7;">Made with care for better web experiences</p>
+    </div>
+  </footer>
+
+  <script type="module">
+    import superhaptic from './dist/index.mjs';
+    import { codeToHtml } from 'https://esm.sh/shiki@1.0.0';
+
+    window.superhaptic = superhaptic;
+
+    // Initialize Shiki syntax highlighting
+    async function highlightAllCode() {
+      const codeBlocks = document.querySelectorAll('.code-block code, .example-code code');
+
+      for (const block of codeBlocks) {
+        const code = block.textContent.trim();
+
+        // Detect language from class name
+        let lang = 'javascript';
+        if (block.className.includes('language-bash')) {
+          lang = 'bash';
+        } else if (block.className.includes('language-javascript')) {
+          lang = 'javascript';
+        }
+
+        try {
+          const html = await codeToHtml(code, {
+            lang,
+            theme: 'rose-pine-dawn',
+          });
+
+          // Replace the parent pre element's content
+          const pre = block.parentElement;
+          const wrapper = pre.parentElement;
+          const tempDiv = document.createElement('div');
+          tempDiv.innerHTML = html;
+          const shikiPre = tempDiv.querySelector('pre');
+
+          if (shikiPre) {
+            pre.innerHTML = shikiPre.innerHTML;
+          }
+        } catch (error) {
+          console.log('Shiki highlighting skipped for block:', error);
+        }
+      }
+    }
+
+    // Run syntax highlighting after page load
+    setTimeout(highlightAllCode, 200);
+
+    // Navbar scroll effect
+    let lastScrollTop = 0;
+    const navbar = document.querySelector('.navbar');
+
+    window.addEventListener('scroll', () => {
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+      if (scrollTop > 100) {
+        navbar.classList.add('scrolled');
+      } else {
+        navbar.classList.remove('scrolled');
+      }
+
+      lastScrollTop = scrollTop;
+    });
+
+    // Detect device type and show appropriate mockup
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+                     ('ontouchstart' in window && window.innerWidth < 768);
+
+    const desktopMockup = document.getElementById('hero-desktop-mockup');
+    const mobileMockup = document.getElementById('hero-mobile-mockup');
+    const deviceInfo = document.getElementById('device-detection-info');
+
+    if (isMobile) {
+      mobileMockup.style.display = 'block';
+      desktopMockup.style.display = 'none';
+      deviceInfo.textContent = '📱 Mobile detected - Tap any element below to feel the vibration!';
+    } else {
+      desktopMockup.style.display = 'block';
+      mobileMockup.style.display = 'none';
+      deviceInfo.textContent = '🖥️ Desktop detected - Click any element below to hear audio feedback!';
+    }
+
+    // Demo functions
+    window.tryHaptic = (preset) => {
+      superhaptic.preset(preset);
+    };
+
+    window.exampleButton = () => {
+      superhaptic.preset('light');
+    };
+
+    window.exampleSuccess = () => {
+      superhaptic.preset('success');
+    };
+
+    window.exampleError = () => {
+      superhaptic.preset('error');
+    };
+
+    let toggleState = false;
+    window.exampleToggle = (btn) => {
+      toggleState = !toggleState;
+      superhaptic.vibrate(toggleState ? 20 : 10);
+      btn.textContent = `Toggle: ${toggleState ? 'ON' : 'OFF'}`;
+      btn.style.background = toggleState ? 'var(--black)' : 'var(--white)';
+      btn.style.color = toggleState ? 'var(--white)' : 'var(--black)';
+    };
+
+    window.exampleNotification = () => {
+      superhaptic.preset('notification');
+    };
+
+    window.exampleCustom = () => {
+      superhaptic.vibrate([50, 100, 50, 100, 50]);
+    };
+
+    // Device Mockup Interactions
+    window.mockupDemo = (preset) => {
+      superhaptic.preset(preset);
+    };
+
+    window.mockupToggle = (checkbox) => {
+      const intensity = checkbox.checked ? 20 : 10;
+      superhaptic.vibrate(intensity);
+    };
+
+    window.switchTab = (tabName) => {
+      // Hide all tabs
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+      });
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+
+      // Show selected tab
+      document.getElementById(tabName).classList.add('active');
+      event.target.classList.add('active');
+    };
+
+    // Copy code function
+    window.copyCode = async (button, text) => {
+      try {
+        await navigator.clipboard.writeText(text);
+
+        // Visual feedback
+        const originalHTML = button.innerHTML;
+        button.classList.add('copied');
+        button.innerHTML = '<i class="ph ph-check"></i><span>Copied!</span>';
+
+        // Add haptic feedback
+        if (window.superhaptic) {
+          superhaptic.preset('light');
+        }
+
+        setTimeout(() => {
+          button.classList.remove('copied');
+          button.innerHTML = originalHTML;
+        }, 2000);
+      } catch (err) {
+        console.error('Failed to copy:', err);
+      }
+    };
+
+    // Scroll animations
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, observerOptions);
+
+    document.querySelectorAll('.fade-in').forEach(el => {
+      observer.observe(el);
+    });
+
+    // Welcome haptic
+    setTimeout(() => superhaptic.preset('light'), 1000);
+  </script>
+</body>
+</html>

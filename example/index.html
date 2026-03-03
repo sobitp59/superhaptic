@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Superhaptic Demo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 600px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 2.5em;
+    }
+
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 1.1em;
+    }
+
+    .status {
+      background: #f0f0f0;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 30px;
+    }
+
+    .status-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .status-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .badge {
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 0.9em;
+      font-weight: 600;
+    }
+
+    .badge.success {
+      background: #10b981;
+      color: white;
+    }
+
+    .badge.error {
+      background: #ef4444;
+      color: white;
+    }
+
+    .section {
+      margin-bottom: 30px;
+    }
+
+    .section-title {
+      font-size: 1.2em;
+      color: #333;
+      margin-bottom: 15px;
+      font-weight: 600;
+    }
+
+    .button-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+    }
+
+    button {
+      padding: 16px 24px;
+      border: none;
+      border-radius: 12px;
+      font-size: 1em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: white;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .btn-light { background: #8b5cf6; }
+    .btn-medium { background: #6366f1; }
+    .btn-heavy { background: #4f46e5; }
+    .btn-success { background: #10b981; }
+    .btn-warning { background: #f59e0b; }
+    .btn-error { background: #ef4444; }
+    .btn-control { background: #6b7280; }
+
+    .toggle-btn {
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    @media (max-width: 480px) {
+      .button-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎯 Superhaptic</h1>
+    <p class="subtitle">Haptic feedback for the web</p>
+
+    <div class="status">
+      <div class="status-item">
+        <span>Browser Support:</span>
+        <span id="support-status" class="badge">Checking...</span>
+      </div>
+      <div class="status-item">
+        <span>Haptics Status:</span>
+        <span id="enabled-status" class="badge">Enabled</span>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Intensity Presets</div>
+      <div class="button-grid">
+        <button class="btn-light" onclick="testPreset('light')">Light</button>
+        <button class="btn-medium" onclick="testPreset('medium')">Medium</button>
+        <button class="btn-heavy" onclick="testPreset('heavy')">Heavy</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Feedback Patterns</div>
+      <div class="button-grid">
+        <button class="btn-success" onclick="testPreset('success')">Success</button>
+        <button class="btn-warning" onclick="testPreset('warning')">Warning</button>
+        <button class="btn-error" onclick="testPreset('error')">Error</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Special Patterns</div>
+      <div class="button-grid">
+        <button class="btn-light" onclick="testPreset('selection')">Selection</button>
+        <button class="btn-medium" onclick="testPreset('doubleTap')">Double Tap</button>
+        <button class="btn-heavy" onclick="testPreset('notification')">Notification</button>
+        <button class="btn-control" onclick="testPreset('longPress')">Long Press</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Controls</div>
+      <button class="btn-control toggle-btn" onclick="toggleHaptics()">
+        Toggle Haptics
+      </button>
+    </div>
+  </div>
+
+  <script type="module">
+    // For local development, import from the built dist
+    // For production demo, you would import from node_modules
+    import superhaptic from '../dist/index.mjs';
+
+    // Make it available globally for inline handlers
+    window.superhaptic = superhaptic;
+
+    // Update status
+    function updateStatus() {
+      const supportBadge = document.getElementById('support-status');
+      const enabledBadge = document.getElementById('enabled-status');
+
+      if (superhaptic.isSupported()) {
+        supportBadge.textContent = 'Supported';
+        supportBadge.className = 'badge success';
+      } else {
+        supportBadge.textContent = 'Not Supported';
+        supportBadge.className = 'badge error';
+      }
+
+      if (superhaptic.isEnabled()) {
+        enabledBadge.textContent = 'Enabled';
+        enabledBadge.className = 'badge success';
+      } else {
+        enabledBadge.textContent = 'Disabled';
+        enabledBadge.className = 'badge error';
+      }
+    }
+
+    window.testPreset = function(preset) {
+      superhaptic.preset(preset);
+    };
+
+    window.toggleHaptics = function() {
+      superhaptic.toggle();
+      updateStatus();
+    };
+
+    // Initial status update
+    updateStatus();
+
+    // Show a welcome notification
+    if (superhaptic.isSupported()) {
+      setTimeout(() => superhaptic.preset('light'), 300);
+    }
+  </script>
+</body>
+</html>
