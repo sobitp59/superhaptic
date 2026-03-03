@@ -1,5 +1,5 @@
 {
-  "name": "@superhaptic/core",
+  "name": "superhaptic",
   "version": "0.1.0",
   "description": "A lightweight library for haptic feedback on the web, bringing mobile-like tactile experiences to browsers",
   "main": "dist/index.js",
