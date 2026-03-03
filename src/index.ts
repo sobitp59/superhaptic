@@ -2,6 +2,11 @@
  * Superhaptic - Haptic feedback for the web
  */
 
+// Extend Window interface to include vendor-prefixed AudioContext
+interface WindowWithWebkit extends Window {
+  webkitAudioContext?: typeof AudioContext;
+}
+
 export type HapticPattern = number | number[] | readonly number[];
 
 export interface HapticOptions {
@@ -74,7 +79,10 @@ class AudioEngine {
 
     if (!this.audioContext) {
       try {
-        this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const AudioContextClass = window.AudioContext || (window as WindowWithWebkit).webkitAudioContext;
+        if (AudioContextClass) {
+          this.audioContext = new AudioContextClass();
+        }
       } catch {
         return null;
       }
