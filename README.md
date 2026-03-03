@@ -16,22 +16,22 @@ A lightweight, zero-dependency library for haptic feedback on the web. Bring mob
 
 ```bash
 # npm
-npm install superhaptic
+npm install @superhaptic/core
 
 # pnpm
-pnpm add superhaptic
+pnpm add @superhaptic/core
 
 # yarn
-yarn add superhaptic
+yarn add @superhaptic/core
 
 # bun
-bun add superhaptic
+bun add @superhaptic/core
 ```
 
 ## Quick Start
 
 ```typescript
-import superhaptic from 'superhaptic';
+import superhaptic from '@superhaptic/core';
 
 // Use preset patterns (with automatic audio fallback)
 superhaptic.preset('light');    // Light tap (vibrates OR plays sound)
@@ -57,7 +57,7 @@ Superhaptic automatically uses **audio feedback** when vibration isn't supported
 ### Preset Patterns
 
 ```typescript
-import { preset, HapticPresets } from 'superhaptic';
+import { preset, HapticPresets } from '@superhaptic/core';
 
 preset('light');        // 10ms - Subtle feedback
 preset('medium');       // 20ms - Standard feedback
@@ -75,7 +75,7 @@ preset('longPress');    // 50ms sustained
 ### Custom Patterns
 
 ```typescript
-import { vibrate } from 'superhaptic';
+import { vibrate } from '@superhaptic/core';
 
 // Single vibration (in milliseconds)
 vibrate(100);
@@ -87,7 +87,7 @@ vibrate([50, 100, 50, 100, 50]);
 ### Instance Methods
 
 ```typescript
-import { Superhaptic } from 'superhaptic';
+import { Superhaptic } from '@superhaptic/core';
 
 const haptic = new Superhaptic({
   enabled: true,
@@ -116,7 +116,7 @@ import {
   toggle,
   isSupported,
   isEnabled
-} from 'superhaptic';
+} from '@superhaptic/core';
 ```
 
 ## Usage Examples
@@ -124,7 +124,7 @@ import {
 ### Button Feedback
 
 ```typescript
-import { preset } from 'superhaptic';
+import { preset } from '@superhaptic/core';
 
 button.addEventListener('click', () => {
   preset('light');
@@ -135,7 +135,7 @@ button.addEventListener('click', () => {
 ### Form Validation
 
 ```typescript
-import { preset } from 'superhaptic';
+import { preset } from '@superhaptic/core';
 
 if (isValid) {
   preset('success');
@@ -149,7 +149,7 @@ if (isValid) {
 ### Toggle Switch
 
 ```typescript
-import { vibrate } from 'superhaptic';
+import { vibrate } from '@superhaptic/core';
 
 toggle.addEventListener('change', (e) => {
   vibrate(e.target.checked ? 20 : 10);
@@ -159,7 +159,7 @@ toggle.addEventListener('change', (e) => {
 ### User Preferences
 
 ```typescript
-import superhaptic from 'superhaptic';
+import superhaptic from '@superhaptic/core';
 
 // Let users control haptics
 const hapticsEnabled = localStorage.getItem('haptics') === 'true';
@@ -190,7 +190,7 @@ On unsupported browsers, the library fails silently by default.
 Full TypeScript support included:
 
 ```typescript
-import type { HapticPattern, HapticOptions, HapticPresetName } from 'superhaptic';
+import type { HapticPattern, HapticOptions, HapticPresetName } from '@superhaptic/core';
 ```
 
 ## License

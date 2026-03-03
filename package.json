@@ -45,12 +45,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/superhaptic"
+    "url": "https://github.com/sobitp59/superhaptic"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/superhaptic/issues"
+    "url": "https://github.com/sobitp59/superhaptic/issues?q=is%3Aissue%20state%3Aopen"
   },
-  "homepage": "https://github.com/yourusername/superhaptic#readme",
+  "homepage": "https://github.com/sobitp59/superhaptic#readme",
   "devDependencies": {
     "@size-limit/preset-small-lib": "^11.0.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
