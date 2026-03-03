@@ -44,3 +44,10 @@ coverage/
 # Temporary files
 .tmp/
 temp/
+
+# Documentation/Setup files
+GITHUB_SETUP.md
+PUBLISHING.md
+BEST_PRACTICES.md
+CONTRIBUTING.md
+CHANGELOG.md
