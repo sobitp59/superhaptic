@@ -328,7 +328,7 @@
     }
 
     .hero-mockup.desktop-mockup {
-      max-width: 60%;
+      min-width: 100%;
     }
 
     .hero-mockup.mobile-mockup {
@@ -1381,7 +1381,7 @@
         <a href="#features">Features</a>
         <a href="#how-it-works">How It Works</a>
         <a href="#installation">Installation</a>
-        <a href="https://github.com/yourusername/superhaptic" target="_blank">GitHub</a>
+        <a href="https://github.com/sobitp59/superhaptic" target="_blank">GitHub</a>
       </div>
     </div>
   </nav>
@@ -1394,12 +1394,12 @@
 
       <div class="cta-buttons">
         <a href="#installation" class="btn btn-primary">Get Started →</a>
-        <a href="https://github.com/yourusername/superhaptic" class="btn btn-secondary">View on GitHub</a>
+        <a href="https://github.com/sobitp59/superhaptic/" class="btn btn-secondary">View on GitHub</a>
       </div>
 
-      <p style="text-align: center; font-size: 0.9rem; margin-bottom: 40px; color: var(--gray-800); font-weight: 500;" id="device-detection-info" class="blur-animate">
+      <!-- <p style="text-align: center; font-size: 0.9rem; margin-bottom: 40px; color: var(--gray-800); font-weight: 500;" id="device-detection-info" class="blur-animate">
         Loading interactive demo...
-      </p>
+      </p> -->
 
       <!-- Desktop Mockup - Shown only on desktop -->
       <div class="device-mockup desktop-mockup hero-mockup" id="hero-desktop-mockup" style="display: none;">
@@ -1496,7 +1496,7 @@
   <section class="social-proof">
     <div class="stats-grid">
       <div class="stat-item fade-in">
-        <div class="stat-number">5KB</div>
+        <div class="stat-number">~6KB</div>
         <div class="stat-label">Tiny Bundle Size</div>
       </div>
       <div class="stat-item fade-in">
@@ -1544,7 +1544,7 @@
           <i class="ph ph-feather" weight="duotone"></i>
         </div>
         <h3 class="feature-title">Ultra Lightweight</h3>
-        <p class="feature-description">Zero dependencies, ~5KB bundle size - no bloat, just pure performance</p>
+        <p class="feature-description">Zero dependencies, ~6KB bundle size - no bloat, just pure performance</p>
       </div>
 
       <div class="feature-card fade-in">
@@ -1803,14 +1803,10 @@ superhaptic.vibrate([10, 50, 20, 50, 30]);</code></pre>
     <div class="footer-links">
       <a href="https://github.com/yourusername/superhaptic">GitHub</a>
       <a href="https://www.npmjs.com/package/superhaptic">NPM</a>
-      <a href="https://github.com/yourusername/superhaptic/blob/main/README.md">Documentation</a>
-      <a href="https://github.com/yourusername/superhaptic/issues">Report Issue</a>
+      <a href="https://github.com/sobitp59/superhaptic/blob/main/README.md">Documentation</a>
+      <a href="https://github.com/sobitp59/superhaptic/issues">Report Issue</a>
     </div>
-    <div class="footer-social">
-      <a href="#" class="social-icon"><i class="ph ph-twitter-logo"></i></a>
-      <a href="https://github.com/yourusername/superhaptic" class="social-icon"><i class="ph ph-github-logo"></i></a>
-      <a href="#" class="social-icon"><i class="ph ph-discord-logo"></i></a>
-    </div>
+  
     <div class="footer-bottom">
       <p>&copy; 2026 Superhaptic. MIT License.</p>
       <p style="margin-top: 10px; opacity: 0.7;">Made with care for better web experiences</p>
@@ -1890,11 +1886,11 @@ superhaptic.vibrate([10, 50, 20, 50, 30]);</code></pre>
     if (isMobile) {
       mobileMockup.style.display = 'block';
       desktopMockup.style.display = 'none';
-      deviceInfo.textContent = '📱 Mobile detected - Tap any element below to feel the vibration!';
+      // deviceInfo.textContent = '📱 Mobile detected - Tap any element below to feel the vibration!';
     } else {
       desktopMockup.style.display = 'block';
       mobileMockup.style.display = 'none';
-      deviceInfo.textContent = '🖥️ Desktop detected - Click any element below to hear audio feedback!';
+      // deviceInfo.textContent = '🖥️ Desktop detected - Click any element below to hear audio feedback!';
     }
 
     // Demo functions
